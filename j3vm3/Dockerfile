@@ -5,7 +5,7 @@ MAINTAINER Reinhold Kainhofer <reinhold@kainhofer.com>
 RUN a2enmod rewrite
 
 # Install PHP extensions
-RUN apt-get update && apt-get install -y libpng12-dev libjpeg-dev zip unzip && rm -rf /var/lib/apt/lists/* \
+RUN apt-get update && apt-get install -y libpng12-dev libjpeg-dev zip unzip sudo && rm -rf /var/lib/apt/lists/* \
 	&& docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr \
 	&& docker-php-ext-install gd
 RUN docker-php-ext-install mysqli
@@ -22,7 +22,9 @@ RUN curl -o virtuemart.zip -SL http://dev.virtuemart.net/attachments/download/97
 	&& mkdir /usr/src/virtuemart \
 	&& unzip virtuemart.zip -d /usr/src/virtuemart \
 	&& rm virtuemart.zip \
-	&& chown -R www-data:www-data /usr/src/virtuemart
+	&& chown -R www-data:www-data /usr/src/virtuemart \
+	&& unzip /usr/src/virtuemart/com_virtuemart*_ext_aio.zip -d /usr/src/virtuemart/com_virtumart_ext_aio/ \
+	&& rm /usr/src/virtuemart/com_virtuemart*_ext_aio.zip
 
 # Copy init scripts and custom .htaccess
 COPY docker-entrypoint.sh /entrypoint.sh

@@ -86,7 +86,7 @@ if [[ "$1" == apache2* ]]; then
 
 
         for p in /usr/src/virtuemart/*.zip; do
-            php ./cli/install-joomla-extension.php --package=$p
+            sudo -u www-data php ./cli/install-joomla-extension.php --package=$p
         done
 fi
 

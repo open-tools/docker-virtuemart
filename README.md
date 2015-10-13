@@ -28,8 +28,9 @@ This mysql container can then be linked to the virtuemart container as described
 
 
 ```console
-$ docker run --name some-virtuemart --link some-mysql:mysql -d opentools/virtuemart
+$ docker run --name some-virtuemart --link some-mysql:mysql -d opentools/virtuemart:tag
 ```
+where `tag` is either `fullinstall` (for the VM 3.0.10 full installer on Joomla 2.5.28, including sample data) or `j3vm3` for an automatic installation of VM 3.0.10 on Joomla 3.x (but no sample data).
 
 The following environment variables are also honored for configuring your Joomla instance:
 
@@ -62,7 +63,40 @@ $ docker run --name some-virtuemart -e JOOMLA_DB_HOST=10.1.2.3:3306 \
     -e JOOMLA_DB_USER=... -e JOOMLA_DB_PASSWORD=... -d opentools/virtuemart:tag
 ```
 
+# Virtuemart 3.x on Joomla 2.5.28 (Full installer)
+
+The stock VirtueMart full installer provides a pre-configured Joomla 2.5.28 installation with sample data installed and the front end already set up with the cart, category and product pages. You can install it from the `opentools/docker-virtuemart:fullinstaller` tag:
+
+```console
+$ docker run --name some-virtuemart --link some-mysql:mysql -d \
+    -p 8080:80 opentools/virtuemart:fullinstaller
+```
+
+This will set up the database and the joomla/virtuemart files, but will leave the installation to you. Simply go to http://localhost:8080/ to run the installer. Unless you changed the defaults with the env variables listed above, the database credentials are:
+- database host: mysql
+- database: virtuemart
+- database user: root
+- database password: (the MYSQL_ROOT_PASSWORD given when the mysql container was created)
+
+# Virtuemart 3.x on Joomla 3.x (automated installation)
+
+There is no full installer for VirtueMart 3.x on Joomla 3.x, so this image installed Joomla 3.x and then the Virtuemart 3.x packages, which provide sample data, but do not set up the Joomla front end with the cart, category and product menus and pages. The installation of Joomla and Virtuemart can mostly be done automatically, so in this case, there is no need to go through the installer. However, to configure Joomla, you can give the database prefix, the site name, the admin user/password etc. as env variables when the container is created:
+
 A typical installation of Joomla 3.x with VirtueMart 3.x will thus use a docker line like:
 ```console
 $ docker run --name=some-virtuemart -e JOOMLA_DB_NAME=joomla_j3vm3 -e JOOMLA_DB_PREFIX=vm3 -e JOOMLA_SITE_NAME="My VirtueMart Installation" --link some-mysql:mysql -p 8080:80 -d opentools/virtuemart:j3vm3
 ```
+
+Available env variables are: `JOOMLA_ADMIN_USER`, `JOOMLA_ADMIN_PASSWORD`, `JOOMLA_ADMIN_EMAIL`, `JOOMLA_SITE_NAME`, `JOOMLA_DB_PREFIX`.
+
+Joomla and Virtuemart itself can be set up automatically, but for technical reasons (Joomla does not have a clean separation of installation and GUI features), the Virtuemart EXT AIO cannot be installed automatically. So after installation, you need to go to Joomla's backend extensions page 
+```
+http://localhost:8080/administrator/index.php?option=com_installer&view=install```
+and install the Virtuemart EXT AIO package from the folder 
+```
+/usr/src/virtuemart/com_virtumart_ext_aio/
+```
+
+# Sources
+The docker files to build these images are available on github under the GPL:
+https://github.com/open-tools/docker-virtuemart
