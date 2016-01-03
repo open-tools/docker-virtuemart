@@ -19,10 +19,11 @@ VOLUME /var/www/html
 
 # Define Joomla version and expected SHA1 signature
 ENV VMFULL_VERSION 3.0.12
-ENV VMFULL_MD5 7e6bef1cff409042ea6efd20e582938e
+ENV VMFULL_MD5 68dfeda59610bd798c0f03a7fb9340df
+ENV VMFULL_POSTFIX "_with_security_patch"
 
 # Download package and extract to web volume
-RUN curl -o virtuemart.zip -SL http://dev.virtuemart.net/attachments/download/980/VirtueMart${VMFULL_VERSION}_Joomla_2.5.28-Stable-Full_Package.zip \
+RUN curl -o virtuemart.zip -SL http://dev.virtuemart.net/attachments/download/983/VirtueMart${VMFULL_VERSION}_Joomla_2.5.29-Stable-Full_Package${VMFULL_POSTFIX}.zip \
 	&& echo "$VMFULL_MD5 *virtuemart.zip" | md5sum -c - \
 	&& mkdir /usr/src/virtuemart \
 	&& unzip virtuemart.zip -d /usr/src/virtuemart \
