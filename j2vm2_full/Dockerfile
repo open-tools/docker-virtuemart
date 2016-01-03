@@ -1,8 +1,9 @@
-FROM php:5.6-apache
+FROM php:5.4-apache
 MAINTAINER Reinhold Kainhofer <reinhold@kainhofer.com>
 
 # Enable Apache Rewrite Module
 RUN a2enmod rewrite
+
 
 # Install PHP extensions
 RUN apt-get update && apt-get install -y libpng12-dev libjpeg-dev zip unzip && rm -rf /var/lib/apt/lists/* \
@@ -11,6 +12,10 @@ RUN apt-get update && apt-get install -y libpng12-dev libjpeg-dev zip unzip && r
 RUN docker-php-ext-install mysqli
 
 VOLUME /var/www/html
+
+# Install MySQL (will only be started if needed)
+# RUN apt-get update && apt-get install -y mysql-server && rm -rf /var/lib/apt/lists/*
+
 
 # Define Joomla version and expected SHA1 signature
 ENV VMFULL_VERSION 2.6.14
