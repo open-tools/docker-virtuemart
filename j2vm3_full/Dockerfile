@@ -13,12 +13,16 @@ RUN docker-php-ext-install mysqli
 
 VOLUME /var/www/html
 
+# Install MySQL (will only be started if needed)
+# RUN apt-get update && apt-get install -y mysql-server && rm -rf /var/lib/apt/lists/*
+
+
 # Define Joomla version and expected SHA1 signature
-ENV VMFULL_VERSION 3.0.10
-ENV VMFULL_MD5 f10c0e702a89751382beaba04a094e90
+ENV VMFULL_VERSION 3.0.12
+ENV VMFULL_MD5 7e6bef1cff409042ea6efd20e582938e
 
 # Download package and extract to web volume
-RUN curl -o virtuemart.zip -SL http://dev.virtuemart.net/attachments/download/973/VirtueMart${VMFULL_VERSION}_Joomla_2.5.28-Stable-Full_Package.zip \
+RUN curl -o virtuemart.zip -SL http://dev.virtuemart.net/attachments/download/980/VirtueMart${VMFULL_VERSION}_Joomla_2.5.28-Stable-Full_Package.zip \
 	&& echo "$VMFULL_MD5 *virtuemart.zip" | md5sum -c - \
 	&& mkdir /usr/src/virtuemart \
 	&& unzip virtuemart.zip -d /usr/src/virtuemart \
