@@ -38,7 +38,7 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 		
 		# Temporarily start the mysql daemon to set up the database and shut it 
 		# down again (supervisord will start it at the very end)
-		echo "Starting local mysql server temporarily to set up the database..."
+		echo "Starting temporary local MySQL server to set up the database..."
 		/usr/bin/mysqld_safe > /dev/null 2>&1 &
 		timeout=30
 		echo -n "Waiting for database server to accept connections"
@@ -71,11 +71,6 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 	fi
 	# Ensure the MySQL Database is created
 	php /makedb.php "$JOOMLA_DB_HOST" "$JOOMLA_DB_USER" "$JOOMLA_DB_PASSWORD" "$JOOMLA_DB_NAME"
-	
-	if [ "$MYSQL_LOCAL" = "1" ]; then
-		# Local installation, so shut down MySQL again, will later be started through supervisord
-		/usr/bin/mysqladmin --user=root --password="${JOOMLA_DB_PASSWORD}" shutdown
-	fi
 
 
 	# Now set up the Joomla/VirtueMart installation files in apache's directory:
@@ -113,6 +108,12 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 		mv installation/models/forms/database.xml.new installation/models/forms/database.xml
 
 		echo >&2 "Complete! Virtuemart has been successfully copied to $(pwd)"
+	fi
+
+	if [ "$MYSQL_LOCAL" = "1" ]; then
+		# Local installation, so shut down MySQL again, will later be started through supervisord
+		echo "Shutting down temporary MySQL instance ..."
+		/usr/bin/mysqladmin --user=root --password="${JOOMLA_DB_PASSWORD}" shutdown
 	fi
 
 	echo >&2 "========================================================================"

@@ -4,10 +4,10 @@ MAINTAINER Reinhold Kainhofer <reinhold@kainhofer.com>
 # Enable Apache Rewrite Module
 RUN a2enmod rewrite
 
-RUN apt-get update 
+RUN apt-get update
 
 # Install PHP extensions
-RUN apt-get install -y libpng12-dev libjpeg-dev zip unzip \
+RUN apt-get install -y libpng12-dev libjpeg-dev zip unzip sudo \
 	&& docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr \
 	&& docker-php-ext-install gd
 RUN docker-php-ext-install mysqli
@@ -24,28 +24,28 @@ RUN apt-get install -y supervisor
 
 
 # Define Joomla version and expected SHA1 signature
-ENV VMFULL_VERSION 3.0.12
-ENV VMFULL_MD5 68dfeda59610bd798c0f03a7fb9340df
-ENV VMFULL_POSTFIX "_with_security_patch"
+ENV VM_VERSION 3.0.12
+ENV VM_DLDIR 983
+ENV VM_MD5 68dfeda59610bd798c0f03a7fb9340df
+ENV VM_POSTFIX "_with_security_patch"
 
 # Download package and extract to web volume
-RUN curl -o virtuemart.zip -SL http://dev.virtuemart.net/attachments/download/983/VirtueMart${VMFULL_VERSION}_Joomla_2.5.29-Stable-Full_Package${VMFULL_POSTFIX}.zip \
-	&& echo "$VMFULL_MD5 *virtuemart.zip" | md5sum -c - \
+RUN curl -o virtuemart.zip -SL http://dev.virtuemart.net/attachments/download/${VM_DLDIR}/VirtueMart${VM_VERSION}_Joomla_2.5.29-Stable-Full_Package${VM_POSTFIX}.zip \
+	&& echo "$VM_MD5 *virtuemart.zip" | md5sum -c - \
 	&& mkdir /usr/src/virtuemart \
 	&& unzip virtuemart.zip -d /usr/src/virtuemart \
 	&& rm virtuemart.zip \
 	&& chown -R www-data:www-data /usr/src/virtuemart
-	
-RUN echo "[program:mysql]\ncommand=/usr/bin/pidproxy /run/mysqld/mysqld.pid /usr/bin/mysqld_safe \nautorestart=true\n" > /etc/supervisor/conf.d/mysql.conf.save
 
 
 # Clean up the apt cache etc.
 RUN rm -rf /var/lib/apt/lists/* 
 
 # Copy init scripts and custom .htaccess
+RUN echo "[program:mysql]\ncommand=/usr/bin/pidproxy /run/mysqld/mysqld.pid /usr/bin/mysqld_safe \nautorestart=true\n" > /etc/supervisor/conf.d/mysql.conf.save
+COPY supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY makedb.php /makedb.php
-ADD supervisord.conf /etc/supervisor/supervisord.conf
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
