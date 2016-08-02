@@ -82,7 +82,7 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 			( set -x; ls -A; sleep 10 )
 		fi
 
-		# extract the joomla installer (VM will be installed from the package later
+		# extract the joomla installer
 		tar cf - --one-file-system -C /usr/src/joomla . | tar xf -
 
 		if [ -e htaccess.txt -a ! -e .htaccess ]; then
