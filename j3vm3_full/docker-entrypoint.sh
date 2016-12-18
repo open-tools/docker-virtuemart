@@ -120,12 +120,12 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 		DBPREFIX="--dbprefix=\"${JOOMLA_DB_PREFIX}_\""
 	fi
 
-	echo "Installing Joomla/VirtueMart site $JOOMLA_SITE_NAME using the CLI and database host $JOOMLA_DB_HOST"
-	php ./installation/install.php --name "$JOOMLA_SITE_NAME" \
-		--admin-user "$JOOMLA_ADMIN_USER" --admin-pass "$JOOMLA_ADMIN_PASSWORD" --admin-email "$JOOMLA_ADMIN_EMAIL" \
-		--db-host "$JOOMLA_DB_HOST" --db-user "$JOOMLA_DB_USER" --db-pass "$JOOMLA_DB_PASSWORD" --db-name "$JOOMLA_DB_NAME" $DBPREFIX  && \
-		rm -rf "./installation/"
-	chown www-data:www-data configuration.php
+#	echo "Installing Joomla/VirtueMart site $JOOMLA_SITE_NAME using the CLI and database host $JOOMLA_DB_HOST"
+#	php ./installation/install.php --name "$JOOMLA_SITE_NAME" \
+#		--admin-user "$JOOMLA_ADMIN_USER" --admin-pass "$JOOMLA_ADMIN_PASSWORD" --admin-email "$JOOMLA_ADMIN_EMAIL" \
+#		--db-host "$JOOMLA_DB_HOST" --db-user "$JOOMLA_DB_USER" --db-pass "$JOOMLA_DB_PASSWORD" --db-name "$JOOMLA_DB_NAME" $DBPREFIX  && \
+#		rm -rf "./installation/"
+#	chown www-data:www-data configuration.php
 
 
 	for p in /usr/src/virtuemart/*.zip; do

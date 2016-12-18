@@ -24,10 +24,10 @@ RUN apt-get install -y supervisor
 
 
 # Define Joomla version and expected SHA1 signature
-ENV J_VERSION 3.5.1
-ENV VM_VERSION 3.0.16
-ENV VM_DLDIR 1001
-ENV VM_MD5 3a445fc3db1cb0373359bf7a36aec4c8
+ENV J_VERSION 3.6.2
+ENV VM_VERSION 3.0.18
+ENV VM_DLDIR 1023
+ENV VM_MD5 2a94ed631d8b6765e8b4f7983e53c24c
 ENV VM_POSTFIX ""
 
 # Download package and extract to web volume
