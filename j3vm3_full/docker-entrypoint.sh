@@ -18,7 +18,8 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 	fi
 	
 	# If the DB user is 'root' and no DB password is given, then use the MySQL root password env var
-	: ${JOOMLA_DB_USER:=root}
+	: ${JOOMLA_DB_NAME:=virtuemart}
+	: ${JOOMLA_DB_USER:=virtuemart}
 	if [ "$JOOMLA_DB_USER" = 'root' ]; then
 			: ${JOOMLA_DB_PASSWORD:=$MYSQL_ENV_MYSQL_ROOT_PASSWORD}
 	fi
@@ -31,10 +32,10 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 		MYSQL_LOCAL=1
 		JOOMLA_DB_HOST="127.0.0.1"
 		if [ -z "${JOOMLA_DB_PASSWORD}" ]; then
-			JOOMLA_DB_PASSWORD='root'
-			echo >&2 "No MySQL root password given. Assuming password 'root'."
+			JOOMLA_DB_PASSWORD='virtuemart'
+			echo >&2 "No MySQL password given. Assuming password 'virtuemart'."
 		fi
-		echo >&2 "   Root password is ${JOOMLA_DB_PASSWORD}."
+		echo >&2 "   MySQL password is ${JOOMLA_DB_PASSWORD} for user ${JOOMLA_DB_USER}."
 		
 		# Temporarily start the mysql daemon to set up the database and shut it 
 		# down again (supervisord will start it at the very end)
@@ -52,7 +53,9 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 			sleep 1
 		done
 		echo
-		mysqladmin --password=root password "${JOOMLA_DB_PASSWORD}"
+        /usr/bin/mysqladmin --user=root --password=root status
+		/usr/bin/mysqladmin --user=root --password=root create "${JOOMLA_DB_NAME}"
+		echo "GRANT ALL PRIVILEGES ON *.* to '${JOOMLA_DB_USER}'@'%' IDENTIFIED BY '${JOOMLA_DB_PASSWORD}';" | mysql --user=root --password=root ${JOOMLA_DB_NAME}
 		
 		# enable mysqld in the supervisor config
 		cp /etc/supervisor/conf.d/mysql.conf.save /etc/supervisor/conf.d/mysql.conf
@@ -60,7 +63,6 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 
 	
 	# Now set up the Database for Joomla/VirtueMart:
-	: ${JOOMLA_DB_NAME:=virtuemart}
 
 	if [ -z "$JOOMLA_DB_PASSWORD" ]; then
 		echo >&2 "error: missing required JOOMLA_DB_PASSWORD environment variable"
@@ -102,10 +104,14 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 			chown www-data:www-data .htaccess
 		fi
 
+		echo "database host: $JOOMLA_DB_HOST"
+		echo
 		sed 's/default="localhost"/default="'$JOOMLA_DB_HOST'"/;
-			 s/\(db_user.*\)$/\1 default="'$JOOMLA_DB_USER'"/;
-			 s/\(db_pass.*\)$/\1 default="'$JOOMLA_DB_PASSWORD'"/;
-			 s/\(db_name.*\)$/\1 default="'$JOOMLA_DB_NAME'"/' installation/model/forms/database.xml > installation/model/forms/database.xml.new
+			 s/default="127.0.0.1"/default="'$JOOMLA_DB_HOST'"/;
+			 s/\(name=.*db_user.*\)$/\1 default="'$JOOMLA_DB_USER'"/;
+			 s/\(name=.*db_pass.*\)$/\1 default="'$JOOMLA_DB_PASSWORD'"/;
+			 s/\(name=.*db_name.*\)$/\1 default="'$JOOMLA_DB_NAME'"/;
+			 ' installation/model/forms/database.xml > installation/model/forms/database.xml.new
 		mv installation/model/forms/database.xml.new installation/model/forms/database.xml
 
 		echo >&2 "Complete! Virtuemart has been successfully copied to $(pwd)"
@@ -116,16 +122,24 @@ if [[ ! -e "/etc/opentools-docker-configured" ]]; then
 	: ${JOOMLA_ADMIN_PASSWORD:=admin}
 	: ${JOOMLA_ADMIN_EMAIL:=admin@example.com}
 	: ${JOOMLA_SITE_NAME:=Joomla Installation}
-	if [ -z "$JOOMLA_DB_PREFIX" ]; then
-		DBPREFIX="--dbprefix=\"${JOOMLA_DB_PREFIX}_\""
+	if [ -n "$JOOMLA_DB_PREFIX" ]; then
+		DBPREFIX="--db-prefix=\"${JOOMLA_DB_PREFIX}_\""
 	fi
 
-#	echo "Installing Joomla/VirtueMart site $JOOMLA_SITE_NAME using the CLI and database host $JOOMLA_DB_HOST"
-#	php ./installation/install.php --name "$JOOMLA_SITE_NAME" \
-#		--admin-user "$JOOMLA_ADMIN_USER" --admin-pass "$JOOMLA_ADMIN_PASSWORD" --admin-email "$JOOMLA_ADMIN_EMAIL" \
-#		--db-host "$JOOMLA_DB_HOST" --db-user "$JOOMLA_DB_USER" --db-pass "$JOOMLA_DB_PASSWORD" --db-name "$JOOMLA_DB_NAME" $DBPREFIX  && \
-#		rm -rf "./installation/"
-#	chown www-data:www-data configuration.php
+	# insert the access and site values in the installer forms so that the user only has to press the buttons to install
+	sed 's/\(name=.*site_name.*\)$/\1 default="'"${JOOMLA_SITE_NAME}"'"/;
+		 s/\(name=.*admin_email.*\)$/\1 default="'$JOOMLA_ADMIN_EMAIL'"/;
+		 s/\(name=.*admin_user.*\)$/\1 default="'$JOOMLA_ADMIN_USER'"/;
+		 s/\(name=.*admin_password.*\)$/\1 default="'$JOOMLA_ADMIN_PASSWORD'"/;
+		 ' installation/model/forms/site.xml > installation/model/forms/site.xml.new
+	mv installation/model/forms/site.xml.new installation/model/forms/site.xml
+	
+ 	echo "Installing Joomla/VirtueMart site $JOOMLA_SITE_NAME using the CLI and database host $JOOMLA_DB_HOST"
+ 	sudo -u www-data php ./installation/install.php --name="$JOOMLA_SITE_NAME" \
+ 		--admin-user="$JOOMLA_ADMIN_USER" --admin-pass="$JOOMLA_ADMIN_PASSWORD" --admin-email="$JOOMLA_ADMIN_EMAIL" \
+ 		--db-host="$JOOMLA_DB_HOST" --db-user="$JOOMLA_DB_USER" --db-pass="$JOOMLA_DB_PASSWORD" --db-name="$JOOMLA_DB_NAME" --sample="sample_virtuemart.sql" $DBPREFIX  && \
+ 		rm -rf "./installation/"
+ 	chown www-data:www-data configuration.php
 
 
 	for p in /usr/src/virtuemart/*.zip; do

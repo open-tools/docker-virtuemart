@@ -1,4 +1,4 @@
-FROM php:5.6-apache
+FROM php:7.2-apache
 MAINTAINER Reinhold Kainhofer <reinhold@kainhofer.com>
 
 # Enable Apache Rewrite Module
@@ -7,7 +7,7 @@ RUN a2enmod rewrite
 RUN apt-get update
 
 # Install PHP extensions
-RUN apt-get install -y libpng12-dev libjpeg-dev zip unzip sudo \
+RUN apt-get install -y libpng-dev libjpeg-dev zip unzip sudo \
 	&& docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr \
 	&& docker-php-ext-install gd
 RUN docker-php-ext-install mysqli
@@ -24,10 +24,10 @@ RUN apt-get install -y supervisor
 
 
 # Define Joomla version and expected SHA1 signature
-ENV J_VERSION 3.6.2
-ENV VM_VERSION 3.0.18
-ENV VM_DLDIR 1023
-ENV VM_MD5 2a94ed631d8b6765e8b4f7983e53c24c
+ENV J_VERSION 3.8.3
+ENV VM_VERSION 3.2.12
+ENV VM_DLDIR 1112
+ENV VM_MD5 e26312d5f1b28d58cece51a160f8cbe6
 ENV VM_POSTFIX ""
 
 # Download package and extract to web volume
